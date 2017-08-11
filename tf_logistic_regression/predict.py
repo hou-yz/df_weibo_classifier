@@ -4,7 +4,7 @@ import tempfile
 
 COLUMNS = ["financial","follow_cnt","followers_cnt","gender","status_cnt","verified_reason",]
 
-df_predict = pd.read_csv("predict.csv",names=COLUMNS, skipinitialspace=True,skiprows=1,encoding='utf-8')
+df_predict = pd.read_csv("predict.csv",names=COLUMNS, skipinitialspace=True,skiprows=0,encoding='utf-8')
 words = pd.read_csv("words.csv",names=["word","word_cnt"],skipinitialspace=True,skiprows=1,encoding='utf-8')
 
 
@@ -59,20 +59,19 @@ verified_reason_words = [tf.contrib.layers.real_valued_column(column_name="word_
 
 total = [gender,follow_cnt,followers_cnt,status_cnt]+(verified_reason_words)#
 
-wide_columns = [gender] + verified_reason_words#
+wide_columns = verified_reason_words#[gender] +
 deep_columns = [tf.contrib.layers.embedding_column(gender, dimension=10),
                 follow_cnt,followers_cnt,status_cnt]#
 
 
-model_dir = './model/50_50_20'#tempfile.mkdtemp()
-'''
-m = tf.contrib.learn.LinearClassifier(feature_columns=total,
+model_dir = './model/2_classes_linear'#tempfile.mkdtemp()
+
+m = tf.contrib.learn.LinearClassifier(feature_columns=wide_columns,
                                       optimizer=tf.train.FtrlOptimizer(
                                           learning_rate=0.1,
                                           l1_regularization_strength=1.0,
                                           l2_regularization_strength=1.0),
                                       model_dir=model_dir)
-
 '''
 m = tf.contrib.learn.DNNLinearCombinedClassifier(
     model_dir=model_dir,
@@ -80,7 +79,7 @@ m = tf.contrib.learn.DNNLinearCombinedClassifier(
     linear_feature_columns=wide_columns,
     dnn_feature_columns=deep_columns,
     dnn_hidden_units=[50, 50, 20])
-
+'''
 
 result=list(m.predict_classes(input_fn=predict_input_fn))
 with open('predict.txt','w') as fp:

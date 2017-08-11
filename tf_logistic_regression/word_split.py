@@ -22,7 +22,7 @@ STOP_WORDS = [line.rstrip() for line in open("stop.txt","r")]
 neg,pos,nv=1,1,0
 #not verified
 
-predict=0
+predict=1
 
 word_update=1
 
@@ -220,7 +220,7 @@ if predict:
         follower_test['financial'].append(2)  # 'NV'
 
 
-    with open('predict.csv', 'a+') as fp:
+    with open('predict.csv', 'w+') as fp:
         writer = csv.writer(fp)
         writer.writerows(zip(*[follower_test[key] for key in keys]))
 
