@@ -16,11 +16,15 @@ LABEL_COLUMN = "financial"
 
 import tensorflow as tf
 
+tf.logging.set_verbosity(tf.logging.INFO)
+
 def input_fn(df):
     # Creates a dictionary mapping from each continuous feature column name (k) to
     # the values of that column stored in a constant Tensor.
-    continuous_cols = {k: tf.constant(df[k].values)
+    continuous_cols = {k: tf.constant(df[k].values,dtype=tf.float32)
                        for k in CONTINUOUS_COLUMNS}
+    #normalize
+    #continuous_cols = {k: tf.nn.l2_normalize(continuous_cols[k],[0]) for k in CONTINUOUS_COLUMNS}
 
     # Creates a dictionary mapping from each categorical feature column name (k)
     # to the values of that column stored in a tf.SparseTensor.
@@ -57,16 +61,15 @@ status_cnt = tf.contrib.layers.real_valued_column("status_cnt")
 
 verified_reason_words = [tf.contrib.layers.real_valued_column(column_name="word_%d" % k) for k in range(len(words['word']))]
 
-total = (verified_reason_words)#[gender,follow_cnt,followers_cnt,status_cnt]+
+#total = [gender,follow_cnt,followers_cnt,status_cnt]+(verified_reason_words)#
 
-wide_columns = [gender] + verified_reason_words#
+wide_columns = verified_reason_words#[gender] +
 deep_columns = [tf.contrib.layers.embedding_column(gender, dimension=10),
                 follow_cnt,followers_cnt,status_cnt]#
 
+model_dir = './model/2_classes_linear'#tempfile.mkdtemp()
 
-model_dir = tempfile.mkdtemp()
-'''
-m = tf.contrib.learn.LinearClassifier(feature_columns=total,
+m = tf.contrib.learn.LinearClassifier(feature_columns=wide_columns,
                                       optimizer=tf.train.FtrlOptimizer(
                                           learning_rate=0.1,
                                           l1_regularization_strength=1.0,
@@ -79,12 +82,13 @@ m = tf.contrib.learn.DNNLinearCombinedClassifier(
     n_classes=3,
     linear_feature_columns=wide_columns,
     dnn_feature_columns=deep_columns,
-    dnn_hidden_units=[10, 10, 10])
+    dnn_hidden_units=[50, 50, 10])
+'''
 
-
-m.fit(input_fn=train_input_fn, steps=200)
+m.fit(input_fn=train_input_fn, steps=10000)
 
 pass
 results = m.evaluate(input_fn=eval_input_fn, steps=1)
 for key in sorted(results):
     print("%s: %s" % (key, results[key]))
+
