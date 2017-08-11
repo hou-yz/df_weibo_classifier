@@ -63,12 +63,12 @@ verified_reason_words = [tf.contrib.layers.real_valued_column(column_name="word_
 
 total = [gender,follow_cnt,followers_cnt,status_cnt]+(verified_reason_words)#
 
-wide_columns = [gender] + verified_reason_words#
+wide_columns = verified_reason_words#[gender] +
 deep_columns = [tf.contrib.layers.embedding_column(gender, dimension=10),
                 follow_cnt,followers_cnt,status_cnt]#
 
 
-model_dir = './model/50_50_10'#tempfile.mkdtemp()
+model_dir = './model/3_classes_50_50_10'#tempfile.mkdtemp()
 
 m = tf.contrib.learn.DNNLinearCombinedClassifier(
     model_dir=model_dir,
